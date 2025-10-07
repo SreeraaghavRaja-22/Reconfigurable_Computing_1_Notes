@@ -1,0 +1,1 @@
+- Make sure to join Zoom before taking the test on honorlock 
