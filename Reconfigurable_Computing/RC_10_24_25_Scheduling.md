@@ -1,0 +1,131 @@
+- Also covers material from 10_27 and 10_29
+
+## Scheduling
+- Scheduling **assigns a start time** to each operation in DFG
+	- Start times must not violate dependencies in DFG
+	- Start times must meet performance constraints
+		- Alternatively, resource constraints
+- Performed on the DFG of each CFG node
+	- Can't execute multiple CFG nodes in parallel
+---
+
+### Scheduling Problems 
+- Several types of scheduling problems
+	- Usually combination of **performance and resource** constraints
+- Problems:
+	- Unconstrained
+		- Not useful since every schedule is valid
+	- **Minimum Latency**
+		- easy to solve
+		- NOT NP-Complete
+	- **Latency constrained**
+		- easy to solve
+		- NOT NP-Complete
+	- **Minimum-latency, resource constrained**
+		- find the schedule with the shortest latency, that uses less than the specified number of resources
+		- **NP-Complete**
+	- **Minimum-Resource, latency constrained**
+		- find the schedule that meets the latency constraint (can be anything)
+			- uses the minimum number of resources
+			- NP-Complete
+---
+### Minimum Latency Scheduling
+- **ASAP (as soon as possible) algorithm**
+	- Find a **candidate node**
+		- A node whose predecessors have been scheduled and completed (or has no predecessors)
+	- Schedule node on cycle later than max cycle of predecessor
+	- Repeat until all nodes are scheduled
+	- Example: ![[Pasted image 20251025234526.png]]
+		- Minimum Possible Latency = 4 cycles
+- **ALAP (as late as possible) algorithm**
+	- Run ASAP, get minimum latency L
+	- Find a candidate
+		- A node whose successors are scheduled (or has none)
+	- Schedule a node one cycle before min cycle of successor
+		- Nodes with no successors schedule to cycle L
+	- Repeat until all nodes scheduled
+	- Why ALAP?
+		- Has to run ASAP first, seems pointless
+		- But, many heuristics need the **mobility/slack** of each operation
+			- ASAP gives earliest possible time for an operation
+			- ALAP gives latest possible time for an operation
+		- **Slack:** difference between earliest and latest possible schedule
+			- Slack = 0 implies operation has been done in the current cycle
+			- Larger slack = more options a heuristic has to schedule the operation
+---
+
+### Scheduling with Resource Constraints 
+- Instead of finding the minimum latency, find latency less than L
+	- **Solutions:**
+		- Use ASAP, verify that minimum latency is less than L
+		- Use ALAP starting with cycle L instead of minimum latency (don't need ASAP)
+	- Schedule must use less than specified number of resources.
+		- Constraints: 2 ALU (+/i), 1 multiplier ![[Pasted image 20251102192431.png]]
+		- **More Resources = Less Latency in Schedule
+- **Minimum-Latency, Resource Constrained Scheduling**
+	- Definition: Given resource constraints, find schedule that has the minimum latency
+		- Example: ![[Pasted image 20251102192910.png]]
+		- *Different Resources can use the same resources but have different latencies*
+	- **Hu's Algorithm:**
+		- Assumes one type of resource
+		- Basic Idea:
+			- Input: graph, # or resources **r**
+			- 1) Label each node by max distance from output
+				- i.e. Use path length from the output as the priority for every node
+			- 2) Determine C, the set of scheduling candidates
+				- Candidate if either no predecessor, or predecessors scheduled
+			- 3) From C, schedule up to **r** nodes to current cycle, use label as priority
+			- 4) Increment current cycle, repeat from 2) until all nodes are scheduled
+		- Hu's is a simplified problem
+		- Common Extensions; 
+			- Multiple Resource Types 
+			- Multi-Cycle Operations 
+	- **List Scheduling: (min latency, resource-constrained scheduling**
+		- Extension for multiple resource types 
+		- Basic Idea: Hu's algorithm for each resource type 
+			- Input: graph, set of constraints **R** for each resource type 
+			- 1) Label nodes based on max distance to output 
+			- 2) For each resource type **t**
+				- 3) Determine candidate nodes, **C** (those w/ no predecessors or w/ scheduled predecessors)
+				- 4) Schedule up to $R_t$ operations from C based on priority to current cycle 
+					- $R_t$ is the constraint on resource type **t**
+			- 3) Increment cycle, Repeat from 2) until all nodes scheduled 
+		- Tries to get to the optimal schedule as possible
+		- ASAP and ALAP could work if they don't violate resource constraints 
+	- **Extension for Multicycle Operations** (useful is one node takes more than one cycle)
+		- Same idea 
+		- Input: graph, set of constraints **R** for each resource type 
+		- 1) label nodes based on max **cycle latency** to output
+		- 2) For each resource type **t**
+			- 3) Determine candidate nodes, **C** (those w/ no predecessors or w/ scheduled **and completed** predecessors)
+			- 4) Schedule up to ($R_t$ - $n_t$) operations based from **C** based on priority, one cycle after predecessor
+				- $R_t$ is the constraint on resource type **t**
+				- $n_t$ is the number of resource **t** in use from previous cycles 
+			- Repeat from 2) until all nodes are scheduled 
+- **Minimum-Resource, Latency-Constrained Scheduling**
+	- Note that if no resource constraints are given, schedule determines number of required resources 
+		- Max # of each resource type used in a single cycle ![[Pasted image 20251102204135.png]]
+	- For all schedules that have latency less than the constraint, find the one that uses the fewest resources ![[Pasted image 20251102204307.png]]
+		- Right is better because it meets **latency constraint while using the fewest resources** 
+	- **List Scheduling (minimum resource version)**
+		- Basic Idea: 
+			- 1) Compute latest start times for each op using ALAP with each specified latency constraint 
+				- *Latest start times must include multicycle operations* 
+			- 2) For each resource type 
+				- 3) determine candidate nodes 
+				- 4) compute slack for each candidate 
+					- Slack = current cycle - latest possible cycle 
+				- 5) Schedule ops with 0 slack 
+					- Update required number of resources (assume 1 of each to start with)
+				- 6) schedule ops that require no extra resources 
+			- 7) Repeat from 2) for all nodes schedules
+	- **Other Extensions**
+		- **Chaining:** 
+			- combine multiple operations in the same cycle 
+				- Lots of adds in the same amount of time it takes on divide ![[Pasted image 20251102215230.png]]
+		- **Pipelining**
+			- Input: DFG, data delivery rate 
+			- For fully pipelined circuit, must have one resource per operation (remember systolic arrays)
+				- Initiation Interval of 1
+					- 1 new operation can start each cycle 
+				- HLS work is about how to extract **task-level parallelism / deep parallelism** from high-level code while synthesizing it
