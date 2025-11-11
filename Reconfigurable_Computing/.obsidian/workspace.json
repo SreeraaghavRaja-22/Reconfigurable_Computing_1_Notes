@@ -83,7 +83,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "RC_10_31_25_CDC.md",
+                "file": "notes/RC_10_31_25_CDC.md",
                 "mode": "source",
                 "source": false
               },
@@ -242,6 +242,8 @@
   },
   "active": "dd33472503bb5cd6",
   "lastOpenFiles": [
+    "labs/lab5.md",
+    "labs/lab3.md",
     "RC_10_29_25_Binding_Resource_Sharing.md",
     "RC_10_31_25_CDC.md",
     "RC_10_15_25.md",
