@@ -57,9 +57,9 @@ begin
     -- special case for 0 cycles 
     U_CYCLES_EQ_0 : if CYCLES = 0 generate 
         output <= input; 
-    end generate; 
+    end generate U_CYCLES_EQ_0; 
    
-    U_DELAY : for i in 0 to CYCLES-1 generate 
+    U_CYCLES_GT_0 : for i in 0 to CYCLES-1 generate 
         d(0) <= input; 
         output <= d(CYCLES);
 
@@ -74,3 +74,6 @@ begin
         );
     end generate;
 end architecture STR; 
+
+
+-- To Do: Read tutorial about Delay Entiity 
