@@ -122,3 +122,25 @@
 			- Essentially improves memory bandwidth by 3x
 			- How does this help?
 				- **Smart buffers enable more unrolling**
+- **Unrolling with Smart Buffers**
+	- After first window is in buffer
+		- Smart Buffer Bandwidth = Memory Bandwidth + Reused Data 
+			- 4 elements + 2 reused elements (b\[2], b\[3])
+			- Essentially, provides bandwidth of 6 elements per cycle 
+		- Can perform 4 iterations in parallel 
+			- **2x speedup compared to FIFO**
+			```C
+			  long b[102]
+			  for(i = 0; i < 100; i++)
+				  a[i] = b[i] + b[i+1] + b[i+2];
+			  ```
+			- However, every subsequent access enables 4 parallel iterations (b\[2] and b\[3] already in buffer)
+				- Doesn't have to read from memory 
+					- "Given for free --- doesn't have to be read from memory"
+	- Datapath based on unrolling enabled by smart buffer bandwidth (not memory bandwidth)
+		- Don't be confused by first memory access 
+	- Smart buffer waits until initial windows in buffer before passing data into datapath 
+		- Adds a little latency 
+			- But, avoids 1st iteration requiring different control due to less unrolling 
+- Practice: ![[Pasted image 20251130123452.png]]
+- Complete Architecture: ![[Pasted image 20251130123523.png]]
