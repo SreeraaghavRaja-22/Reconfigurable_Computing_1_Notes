@@ -129,7 +129,8 @@
 			- Essentially, provides bandwidth of 6 elements per cycle 
 		- Can perform 4 iterations in parallel 
 			- **2x speedup compared to FIFO**
-			```C
+			```C 
+			// Example XX
 			  long b[102]
 			  for(i = 0; i < 100; i++)
 				  a[i] = b[i] + b[i+1] + b[i+2];
@@ -143,4 +144,49 @@
 		- Adds a little latency 
 			- But, avoids 1st iteration requiring different control due to less unrolling 
 - Practice: ![[Pasted image 20251130123452.png]]
-- Complete Architecture: ![[Pasted image 20251130123523.png]]
+- Complete Architecture: ![[Pasted image 20251130123753.png]]
+- **Smart Buffer Implementation**
+	- 1) **Register Smart Buffer** 
+		- Look at Example XX
+			- 1) Determine Unrolling Amount 
+				- Assume FIFO gives you 4 elements per cycle 
+				- 2 elements reused in each iteration 
+				- Smart buffer b.w. = 4 + 2 = 6 elements / cycles 
+				- Can execute 4 iterations in parallel 
+					- Window size = 6 elements 
+					- 1st window = b\[0 - 5], 2nd window = b\[4-9], etc. 
+				- Important: remember that unrolling is also limited by output bandwidth 
+			- 2) Determine buffer size and allocate resources 
+				- Buffer size = # of elements read from FIFO to get first window 
+				- Assume FIFO provides 4 elements 
+				- Reading one window (6 elements) requires 2 FIFO accesses 
+					- 8 total elements read from FIFO 
+					- Therefore, buffer consists 8 registers 
+			- 3) Add steering logic 
+				- Determine by analyzing access patterns 
+				- Need to Shift left by 4
+					- b\[0 - 3], b\[4-7]
+	- 2) Block RAM (BRAM) Smart Buffer 
+		- Register smart buffers 
+			- Huge area overhead 
+		- Buffer Size = # of elements read from memory to get first overhead
+		- For 1-D examples, not much overhead 
+		- Not the case for 2-D
+		- Example: 
+			- for a 3x3 window, buffer must read first 2 rows of input 
+			- For an image 1024 pixels wide, smart buffer would require more than 2024 registers 
+			- so use Block Ram 
+		- Block Ram Implementation 
+			-  # BRAMs = # of rows in window 
+			- Size of BRAM = # of columns 
+			- Shift data in 2-D Register array equal to size of window 
+			- Example for 3x3 window: 
+				- Controller to Read each row of the image 
+				- Fill Window (shift all the way), then shift pointer down (changes row), read again to fill empty / invalid row (new data), repeat
+	- **Recommended methodology**
+		- 1) Determine unrolling amount (determines window size)
+		- 2) Determine buffer size and allocate resources 
+		- 3) Add Steering logic to update buffer for each consecutive window
+	- Smart Buffer vs. FIFO
+		- **Internally** it's almost like a FIFO except it takes in one width and outputs a different width** 
+			- **almost like a FIFO anyway** 
